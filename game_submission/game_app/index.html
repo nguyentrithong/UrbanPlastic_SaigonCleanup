@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green City Vietnam - Sustainability Board Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Menu Screen */
+        .menu-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .game-title {
+            font-size: 3em;
+            color: #2d6a4f;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-subtitle {
+            font-size: 1.2em;
+            color: #52796f;
+            margin-bottom: 30px;
+        }
+
+        .game-description {
+            background: #d8f3dc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #1b4332;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #40916c 0%, #2d6a4f 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Game Screen */
+        .game-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #d8f3dc 0%, #b7e4c7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #1b4332;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2d6a4f;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #95d5b2 0%, #74c69d 100%);
+            border-radius: 15px;
+        }
+
+        .board-cell {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            padding: 10px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .board-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .board-cell.player-position {
+            background: linear-gradient(135deg, #ffd60a 0%, #ffc300 100%);
+            border-color: #ff9500;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .cell-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .cell-type {
+            font-size: 0.7em;
+            color: #1b4332;
+            font-weight: bold;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .dice {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            font-size: 3em;
+            line-height: 80px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0 20px;
+            transition: all 0.3s ease;
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        .card-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-modal.active {
+            display: flex;
+        }
+
+        .card-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card-title {
+            font-size: 2em;
+            color: #2d6a4f;
+            margin-bottom: 20px;
+        }
+
+        .card-description {
+            font-size: 1.1em;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .card-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, #40916c 0%, #2d6a4f 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .choice-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .turn-info {
+            text-align: center;
+            font-size: 1.2em;
+            color: #2d6a4f;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* Results Screen */
+        .results-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .results-title {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .results-title.win {
+            color: #2d6a4f;
+        }
+
+        .results-title.lose {
+            color: #d00000;
+        }
+
+        .results-stats {
+            background: #d8f3dc;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .result-stat {
+            font-size: 1.3em;
+            margin: 15px 0;
+            color: #1b4332;
+        }
+
+        .message {
+            font-size: 1.1em;
+            color: #333;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .stat-value {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="screen active">
+        <div class="menu-container">
+            <div class="game-title">🌱 Green City Vietnam</div>
+            <div class="game-subtitle">Build a Sustainable Future</div>
+            
+            <div class="game-description">
+                <strong>Mục tiêu:</strong> Xây dựng thành phố xanh bền vững tại Việt Nam!<br><br>
+                Di chuyển trên bảng, đưa ra quyết định thông minh về năng lượng, giao thông và quản lý rác thải. 
+                Mỗi lựa chọn của bạn sẽ ảnh hưởng đến lượng khí thải carbon và điểm phát triển bền vững.<br><br>
+                <strong>🎯 Chiến thắng:</strong> Đạt 100 điểm Sustainability và giảm Carbon xuống ≤ 20<br>
+                <strong>❌ Thất bại:</strong> Carbon tăng lên ≥ 100 hoặc Budget xuống ≤ 0
+            </div>
+            
+            <button class="btn" onclick="startGame()">🎮 Bắt đầu chơi</button>
+            <button class="btn" onclick="showInstructions()">📖 Hướng dẫn</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="game-container">
+            <h2 style="text-align: center; color: #2d6a4f; margin-bottom: 20px;">🌱 Green City Vietnam</h2>
+            
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-label">🌍 Carbon Score</div>
+                    <div class="stat-value" id="carbonScore">50</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">💚 Sustainability</div>
+                    <div class="stat-value" id="sustainScore">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">💰 Budget</div>
+                    <div class="stat-value" id="budget">100</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">👥 Happiness</div>
+                    <div class="stat-value" id="happiness">50</div>
+                </div>
+            </div>
+
+            <div class="turn-info">Turn <span id="turnNumber">1</span> / 15</div>
+
+            <div class="game-board" id="gameBoard"></div>
+
+            <div class="controls">
+                <button class="btn" onclick="rollDice()" id="rollBtn">🎲 Gieo xúc xắc</button>
+                <div class="dice" id="diceDisplay">?</div>
+                <button class="btn" onclick="backToMenu()">🏠 Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="resultsScreen" class="screen">
+        <div class="results-container">
+            <div class="results-title" id="resultsTitle">🎉 Chiến thắng!</div>
+            
+            <div class="results-stats">
+                <div class="result-stat">🌍 Carbon Score: <span id="finalCarbon">0</span></div>
+                <div class="result-stat">💚 Sustainability: <span id="finalSustain">0</span></div>
+                <div class="result-stat">💰 Budget: <span id="finalBudget">0</span></div>
+                <div class="result-stat">👥 Happiness: <span id="finalHappiness">0</span></div>
+            </div>
+
+            <div class="message" id="resultsMessage"></div>
+
+            <button class="btn" onclick="startGame()">🔄 Chơi lại</button>
+            <button class="btn" onclick="backToMenu()">🏠 Menu</button>
+        </div>
+    </div>
+
+    <!-- Card Modal -->
+    <div id="cardModal" class="card-modal">
+        <div class="card-content">
+            <div class="card-title" id="cardTitle"></div>
+            <div class="card-description" id="cardDescription"></div>
+            <div class="card-choices" id="cardChoices"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            carbon: 50,
+            sustainability: 0,
+            budget: 100,
+            happiness: 50,
+            position: 0,
+            turn: 1,
+            maxTurns: 15
+        };
+
+        // Board cells configuration
+        const boardCells = [
+            { type: 'start', icon: '🏠', name: 'Start' },
+            { type: 'decision', icon: '⚡', name: 'Energy' },
+            { type: 'event', icon: '🌊', name: 'Event' },
+            { type: 'decision', icon: '🚇', name: 'Transport' },
+            { type: 'resource', icon: '💰', name: 'Funding' },
+            { type: 'decision', icon: '♻️', name: 'Waste' },
+            { type: 'event', icon: '🌳', name: 'Event' },
+            { type: 'challenge', icon: '⚠️', name: 'Challenge' },
+            { type: 'decision', icon: '🏭', name: 'Industry' },
+            { type: 'bonus', icon: '⭐', name: 'Bonus' },
+            { type: 'decision', icon: '🌾', name: 'Agriculture' },
+            { type: 'event', icon: '🌡️', name: 'Event' },
+            { type: 'decision', icon: '🏢', name: 'Building' },
+            { type: 'resource', icon: '💰', name: 'Funding' },
+            { type: 'decision', icon: '🌲', name: 'Forest' },
+            { type: 'event', icon: '☀️', name: 'Event' },
+            { type: 'challenge', icon: '⚠️', name: 'Challenge' },
+            { type: 'decision', icon: '💧', name: 'Water' },
+            { type: 'bonus', icon: '⭐', name: 'Bonus' },
+            { type: 'finish', icon: '🏆', name: 'Finish' }
+        ];
+
+        // Decision scenarios
+        const scenarios = {
+            energy: [
+                {
+                    title: '⚡ Nguồn năng lượng cho thành phố',
+                    description: 'Thành phố cần thêm năng lượng. Bạn chọn nguồn nào?',
+                    choices: [
+                        { text: '☀️ Năng lượng mặt trời (-15 Budget, -10 Carbon, +15 Sustain)', effects: { budget: -15, carbon: -10, sustainability: 15, happiness: 5 } },
+                        { text: '🏭 Nhà máy nhiệt điện (-5 Budget, +15 Carbon, -5 Sustain)', effects: { budget: -5, carbon: 15, sustainability: -5, happiness: -10 } },
+                        { text: '💨 Năng lượng gió (-20 Budget, -12 Carbon, +18 Sustain)', effects: { budget: -20, carbon: -12, sustainability: 18, happiness: 8 } }
+                    ]
+                }
+            ],
+            transport: [
+                {
+                    title: '🚇 Giao thông đô thị',
+                    description: 'Giải quyết vấn đề kẹt xe và ô nhiễm không khí?',
+                    choices: [
+                        { text: '🚇 Xây dựng tàu điện ngầm (-25 Budget, -15 Carbon, +20 Sustain)', effects: { budget: -25, carbon: -15, sustainability: 20, happiness: 15 } },
+                        { text: '🚌 Tăng xe bus công cộng (-10 Budget, -8 Carbon, +12 Sustain)', effects: { budget: -10, carbon: -8, sustainability: 12, happiness: 8 } },
+                        { text: '🛣️ Mở rộng đường xe máy (-8 Budget, +12 Carbon, -8 Sustain)', effects: { budget: -8, carbon: 12, sustainability: -8, happiness: -5 } }
+                    ]
+                }
+            ],
+            waste: [
+                {
+                    title: '♻️ Quản lý rác thải',
+                    description: 'Rác thải nhựa đang tràn lan. Giải pháp của bạn?',
+                    choices: [
+                        { text: '♻️ Chương trình tái chế toàn diện (-18 Budget, -12 Carbon, +16 Sustain)', effects: { budget: -18, carbon: -12, sustainability: 16, happiness: 12 } },
+                        { text: '🚯 Cấm túi nilon và đồ nhựa 1 lần (-10 Budget, -8 Carbon, +14 Sustain)', effects: { budget: -10, carbon: -8, sustainability: 14, happiness: 5 } },
+                        { text: '🗑️ Xây bãi chôn lấp mới (-5 Budget, +10 Carbon, -5 Sustain)', effects: { budget: -5, carbon: 10, sustainability: -5, happiness: -8 } }
+                    ]
+                }
+            ],
+            industry: [
+                {
+                    title: '🏭 Phát triển công nghiệp',
+                    description: 'Một công ty muốn mở nhà máy tại thành phố của bạn.',
+                    choices: [
+                        { text: '🌱 Chỉ chấp nhận công nghiệp xanh (+10 Budget, -5 Carbon, +10 Sustain)', effects: { budget: 10, carbon: -5, sustainability: 10, happiness: 8 } },
+                        { text: '⚖️ Chấp nhận với điều kiện môi trường (+15 Budget, +5 Carbon, +5 Sustain)', effects: { budget: 15, carbon: 5, sustainability: 5, happiness: 5 } },
+                        { text: '💰 Chấp nhận mọi công ty (+25 Budget, +20 Carbon, -12 Sustain)', effects: { budget: 25, carbon: 20, sustainability: -12, happiness: -10 } }
+                    ]
+                }
+            ],
+            agriculture: [
+                {
+                    title: '🌾 Nông nghiệp bền vững',
+                    description: 'Nông dân đang sử dụng quá nhiều phân bón hóa học.',
+                    choices: [
+                        { text: '🌱 Khuyến khích nông nghiệp hữu cơ (-15 Budget, -10 Carbon, +15 Sustain)', effects: { budget: -15, carbon: -10, sustainability: 15, happiness: 10 } },
+                        { text: '📚 Đào tạo kỹ thuật canh tác xanh (-10 Budget, -6 Carbon, +10 Sustain)', effects: { budget: -10, carbon: -6, sustainability: 10, happiness: 8 } },
+                        { text: '🤷 Giữ nguyên hiện trạng (0 Budget, +8 Carbon, -5 Sustain)', effects: { budget: 0, carbon: 8, sustainability: -5, happiness: -5 } }
+                    ]
+                }
+            ],
+            building: [
+                {
+                    title: '🏢 Xây dựng xanh',
+                    description: 'Thành phố cần thêm nhà ở. Tiêu chuẩn xây dựng?',
+                    choices: [
+                        { text: '🌿 Tòa nhà xanh LEED (-20 Budget, -10 Carbon, +18 Sustain)', effects: { budget: -20, carbon: -10, sustainability: 18, happiness: 12 } },
+                        { text: '☀️ Tòa nhà tiết kiệm năng lượng (-12 Budget, -6 Carbon, +10 Sustain)', effects: { budget: -12, carbon: -6, sustainability: 10, happiness: 8 } },
+                        { text: '🏗️ Xây dựng thông thường (-5 Budget, +8 Carbon, -5 Sustain)', effects: { budget: -5, carbon: 8, sustainability: -5, happiness: 0 } }
+                    ]
+                }
+            ],
+            forest: [
+                {
+                    title: '🌲 Bảo vệ rừng',
+                    description: 'Rừng xung quanh thành phố đang bị chặt phá.',
+                    choices: [
+                        { text: '🌳 Trồng rừng quy mô lớn (-22 Budget, -18 Carbon, +22 Sustain)', effects: { budget: -22, carbon: -18, sustainability: 22, happiness: 15 } },
+                        { text: '🚫 Cấm chặt phá rừng (-12 Budget, -10 Carbon, +12 Sustain)', effects: { budget: -12, carbon: -10, sustainability: 12, happiness: 8 } },
+                        { text: '💰 Cho phép khai thác có kiểm soát (+10 Budget, +10 Carbon, -8 Sustain)', effects: { budget: 10, carbon: 10, sustainability: -8, happiness: -5 } }
+                    ]
+                }
+            ],
+            water: [
+                {
+                    title: '💧 Quản lý nước',
+                    description: 'Nguồn nước sạch đang cạn kiệt và ô nhiễm.',
+                    choices: [
+                        { text: '🏞️ Xây hệ thống xử lý nước hiện đại (-18 Budget, -8 Carbon, +15 Sustain)', effects: { budget: -18, carbon: -8, sustainability: 15, happiness: 12 } },
+                        { text: '💧 Thu gom nước mưa (-10 Budget, -5 Carbon, +10 Sustain)', effects: { budget: -10, carbon: -5, sustainability: 10, happiness: 8 } },
+                        { text: '🤷 Tiếp tục dùng nguồn hiện tại (0 Budget, +5 Carbon, -8 Sustain)', effects: { budget: 0, carbon: 5, sustainability: -8, happiness: -10 } }
+                    ]
+                }
+            ]
+        };
+
+        const events = [
+            {
+                title: '🌊 Lũ lụt đột ngột',
+                description: 'Mưa lớn gây ngập lụt do hệ thống thoát nước kém.',
+                effect: { carbon: 5, sustainability: -8, budget: -15, happiness: -10 }
+            },
+            {
+                title: '🌳 Tổ chức phi chính phủ hỗ trợ',
+                description: 'Một NGO quốc tế muốn tài trợ dự án môi trường.',
+                effect: { carbon: -5, sustainability: 10, budget: 20, happiness: 8 }
+            },
+            {
+                title: '🌡️ Nắng nóng kỷ lục',
+                description: 'Nhiệt độ tăng cao, nhu cầu điện tăng đột biến.',
+                effect: { carbon: 8, sustainability: -5, budget: -10, happiness: -8 }
+            },
+            {
+                title: '☀️ Công nghệ mới',
+                description: 'Phát minh công nghệ năng lượng mặt trời hiệu quả hơn!',
+                effect: { carbon: -10, sustainability: 15, budget: 10, happiness: 12 }
+            }
+        ];
+
+        const challenges = [
+            {
+                title: '⚠️ Biểu tình môi trường',
+                description: 'Người dân yêu cầu hành động mạnh mẽ hơn về khí hậu.',
+                effect: { sustainability: 5, happiness: -15 }
+            },
+            {
+                title: '⚠️ Khủng hoảng ngân sách',
+                description: 'Ngân sách thành phố bị cắt giảm do khủng hoảng kinh tế.',
+                effect: { budget: -20, happiness: -10 }
+            }
+        ];
+
+        function initGame() {
+            createBoard();
+            updateStats();
+            updateBoard();
+        }
+
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            boardCells.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'board-cell';
+                cellDiv.id = `cell-${index}`;
+                cellDiv.innerHTML = `
+                    <div class="cell-icon">${cell.icon}</div>
+                    <div class="cell-type">${cell.name}</div>
+                `;
+                board.appendChild(cellDiv);
+            });
+        }
+
+        function updateBoard() {
+            document.querySelectorAll('.board-cell').forEach((cell, index) => {
+                cell.classList.remove('player-position');
+                if (index === gameState.position) {
+                    cell.classList.add('player-position');
+                }
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('carbonScore').textContent = gameState.carbon;
+            document.getElementById('sustainScore').textContent = gameState.sustainability;
+            document.getElementById('budget').textContent = gameState.budget;
+            document.getElementById('happiness').textContent = gameState.happiness;
+            document.getElementById('turnNumber').textContent = gameState.turn;
+        }
+
+        function rollDice() {
+            const rollBtn = document.getElementById('rollBtn');
+            rollBtn.disabled = true;
+            
+            const dice = document.getElementById('diceDisplay');
+            dice.classList.add('rolling');
+            
+            setTimeout(() => {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                dice.textContent = roll;
+                dice.classList.remove('rolling');
+                
+                movePlayer(roll);
+                rollBtn.disabled = false;
+            }, 500);
+        }
+
+        function movePlayer(steps) {
+            gameState.position += steps;
+            if (gameState.position >= boardCells.length) {
+                gameState.position = boardCells.length - 1;
+            }
+            
+            updateBoard();
+            
+            setTimeout(() => {
+                handleCell();
+            }, 300);
+        }
+
+        function handleCell() {
+            const cell = boardCells[gameState.position];
+            
+            switch(cell.type) {
+                case 'decision':
+                    showDecision(cell.name.toLowerCase());
+                    break;
+                case 'event':
+                    showEvent();
+                    break;
+                case 'challenge':
+                    showChallenge();
+                    break;
+                case 'resource':
+                    applyEffect({ budget: 20, sustainability: 5 });
+                    showNotification('💰 Nhận được tài trợ! +20 Budget, +5 Sustainability');
+                    nextTurn();
+                    break;
+                case 'bonus':
+                    applyEffect({ carbon: -10, sustainability: 10, happiness: 10 });
+                    showNotification('⭐ Ô may mắn! -10 Carbon, +10 Sustainability, +10 Happiness');
+                    nextTurn();
+                    break;
+                case 'finish':
+                    checkWinCondition();
+                    break;
+                default:
+                    nextTurn();
+            }
+        }
+
+        function showDecision(type) {
+            const scenarioList = scenarios[type] || scenarios.energy;
+            const scenario = scenarioList[Math.floor(Math.random() * scenarioList.length)];
+            
+            document.getElementById('cardTitle').textContent = scenario.title;
+            document.getElementById('cardDescription').textContent = scenario.description;
+            
+            const choicesDiv = document.getElementById('cardChoices');
+            choicesDiv.innerHTML = '';
+            
+            scenario.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice.text;
+                btn.onclick = () => makeChoice(choice.effects);
+                choicesDiv.appendChild(btn);
+            });
+            
+            document.getElementById('cardModal').classList.add('active');
+        }
+
+        function showEvent() {
+            const event = events[Math.floor(Math.random() * events.length)];
+            
+            document.getElementById('cardTitle').textContent = event.title;
+            document.getElementById('cardDescription').textContent = event.description;
+            
+            const choicesDiv = document.getElementById('cardChoices');
+            choicesDiv.innerHTML = '';
+            
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.textContent = '✓ Tiếp tục';
+            btn.onclick = () => {
+                applyEffect(event.effect);
+                closeModal();
+                nextTurn();
+            };
+            choicesDiv.appendChild(btn);
+            
+            document.getElementById('cardModal').classList.add('active');
+        }
+
+        function showChallenge() {
+            const challenge = challenges[Math.floor(Math.random() * challenges.length)];
+            
+            document.getElementById('cardTitle').textContent = challenge.title;
+            document.getElementById('cardDescription').textContent = challenge.description;
+            
+            const choicesDiv = document.getElementById('cardChoices');
+            choicesDiv.innerHTML = '';
+            
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.textContent = '✓ Chấp nhận';
+            btn.onclick = () => {
+                applyEffect(challenge.effect);
+                closeModal();
+                nextTurn();
+            };
+            choicesDiv.appendChild(btn);
+            
+            document.getElementById('cardModal').classList.add('active');
+        }
+
+        function makeChoice(effects) {
+            applyEffect(effects);
+            closeModal();
+            nextTurn();
+        }
+
+        function applyEffect(effects) {
+            if (effects.carbon) gameState.carbon += effects.carbon;
+            if (effects.sustainability) gameState.sustainability += effects.sustainability;
+            if (effects.budget) gameState.budget += effects.budget;
+            if (effects.happiness) gameState.happiness += effects.happiness;
+            
+            // Keep values in reasonable ranges
+            gameState.carbon = Math.max(0, Math.min(150, gameState.carbon));
+            gameState.sustainability = Math.max(0, Math.min(150, gameState.sustainability));
+            gameState.budget = Math.max(-50, Math.min(200, gameState.budget));
+            gameState.happiness = Math.max(0, Math.min(100, gameState.happiness));
+            
+            updateStats();
+        }
+
+        function closeModal() {
+            document.getElementById('cardModal').classList.remove('active');
+        }
+
+        function nextTurn() {
+            gameState.turn++;
+            updateStats();
+            
+            checkGameOver();
+        }
+
+        function checkGameOver() {
+            // Win conditions
+            if (gameState.sustainability >= 100 && gameState.carbon <= 20) {
+                showResults(true, 'perfect');
+                return;
+            }
+            
+            // Lose conditions
+            if (gameState.carbon >= 100) {
+                showResults(false, 'carbon');
+                return;
+            }
+            
+            if (gameState.budget <= 0) {
+                showResults(false, 'budget');
+                return;
+            }
+            
+            // Turn limit
+            if (gameState.turn > gameState.maxTurns) {
+                checkFinalScore();
+                return;
+            }
+        }
+
+        function checkWinCondition() {
+            checkFinalScore();
+        }
+
+        function checkFinalScore() {
+            if (gameState.sustainability >= 100 && gameState.carbon <= 20) {
+                showResults(true, 'perfect');
+            } else if (gameState.sustainability >= 70 && gameState.carbon <= 40) {
+                showResults(true, 'good');
+            } else if (gameState.sustainability >= 50) {
+                showResults(true, 'ok');
+            } else {
+                showResults(false, 'failed');
+            }
+        }
+
+        function showResults(win, reason) {
+            const resultsTitle = document.getElementById('resultsTitle');
+            const resultsMessage = document.getElementById('resultsMessage');
+            
+            document.getElementById('finalCarbon').textContent = gameState.carbon;
+            document.getElementById('finalSustain').textContent = gameState.sustainability;
+            document.getElementById('finalBudget').textContent = gameState.budget;
+            document.getElementById('finalHappiness').textContent = gameState.happiness;
+            
+            if (win) {
+                resultsTitle.textContent = '🎉 Chiến thắng!';
+                resultsTitle.className = 'results-title win';
+                
+                if (reason === 'perfect') {
+                    resultsMessage.textContent = 'Xuất sắc! Bạn đã xây dựng một thành phố xanh hoàn hảo với carbon thấp và phát triển bền vững cao. Việt Nam tự hào về thành phố của bạn!';
+                } else if (reason === 'good') {
+                    resultsMessage.textContent = 'Làm tốt lắm! Thành phố của bạn đang trên đà phát triển bền vững. Tiếp tục nỗ lực để đạt mục tiêu net-zero carbon!';
+                } else {
+                    resultsMessage.textContent = 'Không tệ! Thành phố có một số tiến bộ về bền vững, nhưng vẫn cần cải thiện thêm để đối phó với biến đổi khí hậu.';
+                }
+            } else {
+                resultsTitle.textContent = '😔 Thất bại';
+                resultsTitle.className = 'results-title lose';
+                
+                if (reason === 'carbon') {
+                    resultsMessage.textContent = 'Lượng khí thải carbon quá cao! Thành phố của bạn đang góp phần làm tăng hiệu ứng nhà kính. Hãy ưu tiên năng lượng sạch và giảm phát thải hơn.';
+                } else if (reason === 'budget') {
+                    resultsMessage.textContent = 'Ngân sách cạn kiệt! Thành phố không còn tiền để thực hiện các dự án. Cần cân bằng tốt hơn giữa đầu tư và chi tiêu.';
+                } else {
+                    resultsMessage.textContent = 'Thành phố chưa đạt mục tiêu phát triển bền vững. Biến đổi khí hậu vẫn là thách thức lớn. Hãy thử lại với chiến lược khác!';
+                }
+            }
+            
+            showScreen('resultsScreen');
+        }
+
+        function showNotification(message) {
+            // Simple notification (could be enhanced with a toast/popup)
+            setTimeout(() => {
+                alert(message);
+            }, 300);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startGame() {
+            // Reset game state
+            gameState = {
+                carbon: 50,
+                sustainability: 0,
+                budget: 100,
+                happiness: 50,
+                position: 0,
+                turn: 1,
+                maxTurns: 15
+            };
+            
+            initGame();
+            showScreen('gameScreen');
+        }
+
+        function backToMenu() {
+            showScreen('menuScreen');
+        }
+
+        function showInstructions() {
+            alert('📖 HƯỚNG DẪN CHƠI\n\n' +
+                  '1. Gieo xúc xắc để di chuyển trên bảng\n' +
+                  '2. Mỗi ô có các sự kiện khác nhau:\n' +
+                  '   • Decision: Đưa ra quyết định quan trọng\n' +
+                  '   • Event: Sự kiện ngẫu nhiên xảy ra\n' +
+                  '   • Challenge: Thử thách cần vượt qua\n' +
+                  '   • Resource: Nhận tài nguyên\n' +
+                  '   • Bonus: Phần thưởng may mắn\n\n' +
+                  '3. Theo dõi 4 chỉ số:\n' +
+                  '   🌍 Carbon: Giữ thấp (mục tiêu ≤20)\n' +
+                  '   💚 Sustainability: Tăng cao (mục tiêu ≥100)\n' +
+                  '   💰 Budget: Đừng để cạn kiệt\n' +
+                  '   👥 Happiness: Giữ người dân hạnh phúc\n\n' +
+                  '🎯 CHIẾN THẮNG: Đạt 100 Sustainability và Carbon ≤20\n' +
+                  '❌ THẤT BẠI: Carbon ≥100 hoặc Budget ≤0\n\n' +
+                  'Chúc may mắn! 🌱');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            // Nothing to initialize yet, game starts from menu
+        };
+    </script>
+
+<style>
+/* --- Help Modal (accessible) --- */
+.help-backdrop{position:fixed;inset:0;background:rgba(6,10,20,.6);backdrop-filter:saturate(120%) blur(2px);
+  display:none;align-items:center;justify-content:center;z-index:9999;}
+.help-backdrop.show{display:flex;}
+.help-dialog{width:min(720px,92vw);max-height:86vh;overflow:auto;border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.06);
+  background:linear-gradient(180deg,#0f1730,#111c3a); color:#e6eeff; border:1px solid #24345c;}
+.help-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #223355}
+.help-title{margin:0;font-size:20px}
+.help-close{appearance:none;border:0;border-radius:10px;background:#1a2b52;color:#cfe3ff;padding:8px 12px;cursor:pointer}
+.help-body{padding:18px;font-size:15px;line-height:1.55}
+.help-body .grid{display:grid;gap:10px}
+.help-body .tip{background:#0f2044;border:1px solid #23407a;padding:10px;border-radius:10px}
+.help-footer{display:flex;justify-content:flex-end;padding:12px 18px;border-top:1px solid #223355}
+.help-ok{appearance:none;border:0;border-radius:10px;background:#52b4ff;color:#082039;font-weight:700;padding:10px 14px;cursor:pointer}
+kbd{background:#102542;border:1px solid #1f3b6c;border-radius:6px;padding:2px 6px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+</style>
+
+<div class="help-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" aria-hidden="true">
+  <div class="help-dialog">
+    <div class="help-header">
+      <h3 id="helpTitle" class="help-title">📘 HƯỚNG DẪN CHƠI</h3>
+      <button class="help-close" type="button" aria-label="Đóng hướng dẫn">✕</button>
+    </div>
+    <div class="help-body">
+      <div class="grid">
+        <div class="tip"><strong>🎲 Bước 1:</strong> Gieo xúc xắc và di chuyển trên bảng.</div>
+        <div class="tip"><strong>🎯 Bước 2:</strong> Ở mỗi ô bạn gặp <em>Decision / Event / Challenge / Resource</em> — hãy đọc kỹ và chọn.</div>
+        <div class="tip"><strong>📈 Bước 3:</strong> Chỉ số sẽ thay đổi (Budget / Sustainability / Carbon...). Cân bằng để không rơi vào trạng thái thua.</div>
+      </div>
+      <hr style="border:0;border-top:1px solid #223355;margin:14px 0;">
+      <p><strong>🏆 Chiến thắng:</strong> Đạt mục tiêu đề ra (ví dụ: Sustainability ≥ 100 &amp; Carbon ≤ 20).</p>
+      <p><strong>❌ Thất bại:</strong> Carbon ≥ 100 hoặc Budget ≤ 0.</p>
+      <p><strong>⌨️ Mẹo:</strong> Bạn có thể dùng <kbd>Space</kbd> để bỏ qua thông báo, <kbd>Esc</kbd> để đóng hộp thoại.</p>
+    </div>
+    <div class="help-footer">
+      <button class="help-ok" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const modal = document.getElementById('helpModal');
+  if(!modal) return;
+  const openers = [];
+  [['[data-action="help"]'], ['#help','#helpBtn'], ['.btn-help'], ['button']].forEach(selArr=>{
+    selArr.forEach(sel=> document.querySelectorAll(sel).forEach(el=>openers.push(el)));
+  });
+  function textHas(el, words){ return words.some(w => (el.textContent||'').toLowerCase().includes(w)); }
+  const words = ['hướng dẫn','help'];
+  for(const el of openers){
+    if(el.matches('[data-action="help"],#help,#helpBtn,.btn-help') || textHas(el, words)){
+      el.addEventListener('click', e => { e.preventDefault(); showModal(); });
+    }
+  }
+  const btnClose = modal.querySelector('.help-close');
+  const btnOk = modal.querySelector('.help-ok');
+  function showModal(){
+    modal.classList.add('show');
+    modal.removeAttribute('aria-hidden');
+    setTimeout(()=> (btnOk && btnOk.focus()), 0);
+  }
+  function hideModal(){
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+  }
+  btnClose && btnClose.addEventListener('click', hideModal);
+  btnOk && btnOk.addEventListener('click', hideModal);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) hideModal(); });
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('show')) hideModal(); });
+})();
+</script>
+</body>
+</html>
